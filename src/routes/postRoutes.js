@@ -1,4 +1,5 @@
 const express = require('express');
+const { userAuth } = require('../middleware/auth');
 const router = express.Router();
 
 // Get all posts with author info
@@ -98,15 +99,16 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create post
-router.post('/', async (req, res) => {
+router.post('/', userAuth, async (req, res) => {
   try {
+    const {id, email} = req.user;
+    const author_id = id;
     const { 
       title, 
       content, 
       excerpt, 
       meta_description, 
       meta_keywords, 
-      author_id,
       published = false 
     } = req.body;
     
