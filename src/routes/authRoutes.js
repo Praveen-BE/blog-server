@@ -15,7 +15,7 @@ authRouter.post("/signup", async(req, res)=>{
         validateSignUpData(req);
 
         // Encrypt the Password
-        console.log(req.body); // this is not work
+        // console.log(req.body); // this is not work
         const { name, email,  password ,bio} = req.body;
         const passwordHash = await bcrypt.hash(password, 10);
 
@@ -26,7 +26,7 @@ authRouter.post("/signup", async(req, res)=>{
             RETURNING id, name, email, bio, created_at, updated_at`,
             [name, email, passwordHash, bio]
         );
-        console.log(result);
+        // console.log(result);
 
         const user = result.rows[0]; 
         // Generate JWT 
@@ -43,7 +43,7 @@ authRouter.post("/signup", async(req, res)=>{
 authRouter.post("/login", async (req, res) => {
   try {
     // validate signin data
-    // console.log(req.body); // why it is undifined postman did not send json it send text
+    console.log(req.body);
     validateSignInData(req);
 
     // console.log(req);
@@ -73,6 +73,7 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", token, { 
         httpOnly: true, // prevents JS access to cookie 
         secure: false, // set true if using HTTPS 
+        sameSite: "lax", // avoids rejection without HTTPS
         expires: new Date(Date.now() + 7 * 3600000), 
       });
 
@@ -96,6 +97,3 @@ authRouter.post("/logout", async (req, res) => {
 });
 
 module.exports = authRouter;
-
-
-

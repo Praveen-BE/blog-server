@@ -53,6 +53,104 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get posts by author id
+router.get('/authorblogs/:author_id', async (req, res) => {
+  try {
+    const { limit = 10, offset = 0 } = req.query;
+    const { author_id } = req.params;
+
+    const query = `
+      SELECT 
+        p.id, p.title, p.content, p.excerpt, 
+        p.meta_description, p.meta_keywords, 
+        p.lexical_content,
+        p.published, p.created_at, p.updated_at,
+        u.id as author_id, u.name as author_name, u.email as author_email
+      FROM posts p
+      LEFT JOIN users u ON p.author_id = u.id
+      WHERE p.author_id = $1
+      ORDER BY p.created_at DESC
+      LIMIT $2 OFFSET $3
+    `;
+
+    const params = [author_id, limit, offset];
+    const result = await req.app.locals.pool.query(query, params);
+
+    const posts = result.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      content: row.content,
+      excerpt: row.excerpt,
+      meta_description: row.meta_description,
+      meta_keywords: row.meta_keywords,
+      lexical_content: row.lexical_content,
+      published: row.published,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      author: {
+        id: row.author_id,
+        name: row.author_name,
+        email: row.author_email
+      }
+    }));
+
+    res.json(posts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Failed to fetch posts' });
+  }
+});
+
+// Get posts by author id
+router.get('/myblogs', userAuth, async (req, res) => {
+  try {
+    const { limit = 10, offset = 0 } = req.query;
+    // console.log(req.user);
+    const {id} = req.user;
+    const  author_id = id;
+
+    const query = `
+      SELECT 
+        p.id, p.title, p.content, p.excerpt, 
+        p.meta_description, p.meta_keywords, 
+        p.lexical_content,
+        p.published, p.created_at, p.updated_at,
+        u.id as author_id, u.name as author_name, u.email as author_email
+      FROM posts p
+      LEFT JOIN users u ON p.author_id = u.id
+      WHERE p.author_id = $1
+      ORDER BY p.created_at DESC
+      LIMIT $2 OFFSET $3
+    `;
+
+    const params = [author_id, limit, offset];
+    const result = await req.app.locals.pool.query(query, params);
+
+    const posts = result.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      content: row.content,
+      excerpt: row.excerpt,
+      meta_description: row.meta_description,
+      meta_keywords: row.meta_keywords,
+      lexical_content: row.lexical_content,
+      published: row.published,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      author: {
+        id: row.author_id,
+        name: row.author_name,
+        email: row.author_email
+      }
+    }));
+
+    res.json(posts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Failed to fetch posts' });
+  }
+});
+
 // Get single post
 router.get('/:id', async (req, res) => {
   try {
@@ -109,11 +207,12 @@ router.post('/', userAuth, async (req, res) => {
       excerpt, 
       meta_description, 
       meta_keywords, 
-      published = false 
+      published = false,
+      lexical_content,
     } = req.body;
     
     // Validate input
-    if (!title || !content || !author_id) {
+    if (!title || !content || !author_id || !lexical_content) {
       return res.status(400).json({ 
         error: 'Title, content, and author_id are required' 
       });
@@ -121,10 +220,10 @@ router.post('/', userAuth, async (req, res) => {
     
     const result = await req.app.locals.pool.query(
       `INSERT INTO posts 
-        (title, content, excerpt, meta_description, meta_keywords, author_id, published) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7) 
+        (title, content, excerpt, meta_description, meta_keywords, author_id, published, lexical_content) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
       RETURNING *`,
-      [title, content, excerpt, meta_description, meta_keywords, author_id, published]
+      [title, content, excerpt, meta_description, meta_keywords, author_id, published, lexical_content]
     );
     
     res.status(201).json(result.rows[0]);
@@ -149,17 +248,18 @@ router.put('/:id', async (req, res) => {
       excerpt, 
       meta_description, 
       meta_keywords,
-      published 
+      published,
+      lexical_content 
     } = req.body;
     
     const result = await req.app.locals.pool.query(
       `UPDATE posts 
       SET title = $1, content = $2, excerpt = $3, 
           meta_description = $4, meta_keywords = $5, 
-          published = $6, updated_at = NOW() 
-      WHERE id = $7 
+          published = $6, updated_at = NOW(), lexical_content = $7
+      WHERE id = $8 
       RETURNING *`,
-      [title, content, excerpt, meta_description, meta_keywords, published, id]
+      [title, content, excerpt, meta_description, meta_keywords, published, lexical_content, id]
     );
     
     if (result.rows.length === 0) {

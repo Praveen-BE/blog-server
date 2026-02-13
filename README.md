@@ -43,6 +43,11 @@ CREATE TABLE IF NOT EXISTS posts (
   FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- to store lexical json format data 
+ALTER TABLE posts
+ADD COLUMN lexical_content JSONB;
+
+
 -- Categories table
 CREATE TABLE IF NOT EXISTS categories (
   id SERIAL PRIMARY KEY,

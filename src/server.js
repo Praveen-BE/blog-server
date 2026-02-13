@@ -8,10 +8,26 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Allow only specific domains
+const allowedOrigins = ['http://localhost:3000', 'https://mywebsite.com'];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+    // allowedHeaders: '*',
+    credentials: true // Allow cookies/auth headers
+}));
 
 app.locals.pool = pool;
 
@@ -20,6 +36,7 @@ const userRoutes = require('./routes/userRoutes');
 const postRoutes = require('./routes/postRoutes');
 const categoryRoutes = require('./routes/catagoryRoutes');
 const authRoutes = require("./routes/authRoutes");
+const profileRouter = require('./routes/profileRoutes');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -40,6 +57,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRouter);
 
 // 404 handler - as last Router for Error Handling
 app.use((req, res) => {
