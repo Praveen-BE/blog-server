@@ -151,7 +151,7 @@ router.get('/myblogs', userAuth, async (req, res) => {
   }
 });
 
-// Get single post
+// Get single post for user Reading
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;

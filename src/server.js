@@ -37,6 +37,7 @@ const postRoutes = require('./routes/postRoutes');
 const categoryRoutes = require('./routes/catagoryRoutes');
 const authRoutes = require("./routes/authRoutes");
 const profileRouter = require('./routes/profileRoutes');
+const editorRouter = require('./routes/editorRoutes');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -58,6 +59,7 @@ app.use('/api/posts', postRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRouter);
+app.use('/api/editor', editorRouter);
 
 // 404 handler - as last Router for Error Handling
 app.use((req, res) => {
