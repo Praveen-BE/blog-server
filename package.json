@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
@@ -11,13 +12,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@lexical/headless": "^0.40.0",
+    "@lexical/html": "^0.40.0",
+    "@lexical/link": "^0.40.0",
+    "@lexical/rich-text": "^0.40.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "dompurify": "^3.3.1",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "jsdom": "^28.1.0",
     "jsonwebtoken": "^9.0.3",
+    "lexical": "^0.40.0",
     "pg": "^8.17.1",
     "validator": "^13.15.26"
   }
