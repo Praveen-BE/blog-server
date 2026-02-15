@@ -4,6 +4,7 @@ const editorRouter = express.Router();
 
 editorRouter.post("/lexicalsave", userAuth, async (req, res) => {
   try {
+    // console.log("Lexical Save Get this Body :- "+req.body);
     const { id, lexicalJson } = req.body; // post id and lexicalJson
     const userId = req.user.id; // userAuth middleware should attach user info
 
@@ -23,11 +24,12 @@ editorRouter.post("/lexicalsave", userAuth, async (req, res) => {
 
     // Update lexical_json if user is the author
     const result = await req.app.locals.pool.query(
-      'UPDATE posts SET lexical_json = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      'UPDATE posts SET lexical_content = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
       [lexicalJson, id]
     );
 
-    res.json(result.rows[0]);
+    // res.json(result.rows[0].lexical_content);
+    res.status(200).json({message : "Post Update Successfully"});
   } catch (error) {
     console.error('Error updating post lexicalJson:', error);
     res.status(500).json({ error: 'Failed to update post lexicalJson' });

@@ -112,8 +112,7 @@ router.get('/myblogs', userAuth, async (req, res) => {
     const query = `
       SELECT 
         p.id, p.title, p.content, p.excerpt, 
-        p.meta_description, p.meta_keywords, 
-        p.lexical_content,
+        p.meta_description, p.meta_keywords,
         p.published, p.created_at, p.updated_at,
         u.id as author_id, u.name as author_name, u.email as author_email
       FROM posts p
