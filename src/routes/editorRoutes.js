@@ -88,7 +88,8 @@ editorRouter.post("/updateashtml", userAuth, async(req, res)=>{
     console.log("Lexical Save Get this Body :- "+ JSON.stringify(req.body));
     const { id, lexicalJson } = req.body; // post id and lexicalJson
     console.log("post id :- "+ id);
-    console.log("lexical json from api :-"+ JSON.stringify(lexicalJson));
+    // console.log("lexical json from api :-"+ JSON.stringify(lexicalJson));
+      // console.log("lexical json from api 1 :-"+ lexicalJson);
     const userId = req.user.id; // userAuth middleware should attach user info
 
     // First, check if the post exists and belongs to the user
@@ -106,7 +107,7 @@ editorRouter.post("/updateashtml", userAuth, async(req, res)=>{
     }
 
     // Convert lexical json to clean html
-    const safeHtml = convertLexicalToHtml(JSON.stringify(lexicalJson));
+    // const safeHtml = convertLexicalToHtml(lexicalJson);
     console.log("html of lexical :- "+safeHtml);
 
     // Update lexical_json if user is the author

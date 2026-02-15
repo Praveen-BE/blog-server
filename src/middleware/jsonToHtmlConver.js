@@ -7,7 +7,7 @@ const { JSDOM } = require('jsdom');
 const DOMPurify = require('dompurify');
 
 function convertLexicalToHtml(lexicalJson) {
-  console.log("Conversion Middle get this data :- "+lexicalJson);
+  // console.log("Conversion Middle get this data :- "+lexicalJson);
   // 1. Initialize JSDOM
   const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
   const window = dom.window;
@@ -44,11 +44,11 @@ function convertLexicalToHtml(lexicalJson) {
 
     // 5. Sanitize and Wrap
     const purify = DOMPurify(window);
-    console.log("lexical to html in middleware :-")
+    // console.log("lexical to html in middleware :-")
     const cleanHtml = purify.sanitize(html);
 
     // Wrap in <article> or <div> as requested
-    return `<article class="lexical-content">${cleanHtml}</article>`;
+    return `<div class="lexical-content">${cleanHtml}</div>`;
 
   } catch (error) {
     console.error("Conversion failed:", error);
