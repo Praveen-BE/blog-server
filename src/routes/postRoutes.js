@@ -2,7 +2,7 @@ const express = require('express');
 const { userAuth } = require('../middleware/auth');
 const router = express.Router();
 
-// Get all posts with author info
+// Get all posts with author info - this api collect specific auther posts and latest post
 router.get('/', async (req, res) => {
   try {
     const { limit = 10, offset = 0, author_id } = req.query;
@@ -52,6 +52,105 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch posts' });
   }
 });
+
+// Get posts by Catogory slug
+router.get('/categories', async (req, res) => {
+    try {
+    const { slug } = req.params;
+    const { limit = 10, offset = 0 } = req.query;
+
+    const query = `
+      SELECT 
+        p.id, p.title, p.content, p.excerpt, 
+        p.published, p.created_at, p.lexical_content,
+        u.name as author_name,
+        -- This aggregates all category names into a single JSON array
+        json_agg(json_build_object('id', c.id, 'name', c.name, 'slug', c.slug)) as categories
+      FROM posts p
+      LEFT JOIN users u ON p.author_id = u.id
+      INNER JOIN post_categories pc ON p.id = pc.post_id
+      INNER JOIN categories c ON pc.category_id = c.id
+      WHERE p.id IN (
+        -- Subquery to find IDs of posts that belong to the requested category slug
+        SELECT post_id 
+        FROM post_categories 
+        JOIN categories ON post_categories.category_id = categories.id 
+        WHERE categories.slug = $1
+      )
+      GROUP BY p.id, u.id
+      ORDER BY p.created_at DESC
+      LIMIT $2 OFFSET $3
+    `;
+
+    const params = [slug, limit, offset];
+    const result = await req.app.locals.pool.query(query, params);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "No posts found for this category" });
+    }
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Database Error:', error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// GET /api/posts/byfilter?slugs=javascript,react&author_ids=1,2
+router.get('/byfilter', async (req, res) => {
+  try {
+    const slugs = req.query.slugs ? req.query.slugs.split(',') : [];
+    const { limit = 10, offset = 0, sort = 'desc' } = req.query;
+
+    // Convert author_ids query param into an array of integers
+    const authorIds = req.query.author_ids
+      ? req.query.author_ids.split(',').map(id => parseInt(id, 10)).filter(Number.isInteger)
+      : [];
+
+    if (slugs.length === 0) {
+      return res.status(400).json({ error: "No slugs provided" });
+    }
+
+    const sortOrder = sort.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+    const query = `
+      SELECT 
+        p.id, p.title, p.excerpt, 
+        p.published, p.created_at,
+        u.name as author_name,
+        json_agg(json_build_object('name', c.name, 'slug', c.slug)) as categories
+      FROM posts p
+      LEFT JOIN users u ON p.author_id = u.id
+      INNER JOIN post_categories pc ON p.id = pc.post_id
+      INNER JOIN categories c ON pc.category_id = c.id
+      WHERE p.id IN (
+        SELECT post_id 
+        FROM post_categories 
+        JOIN categories ON post_categories.category_id = categories.id 
+        WHERE categories.slug = ANY($1)
+      )
+      ${authorIds.length > 0 ? 'AND p.author_id = ANY($4::int[])' : ''}
+      GROUP BY p.id, u.id
+      ORDER BY p.created_at ${sortOrder}
+      LIMIT $2 OFFSET $3
+    `;
+
+    const params = authorIds.length > 0
+      ? [slugs, limit, offset, authorIds]
+      : [slugs, limit, offset];
+
+    const result = await req.app.locals.pool.query(query, params);
+
+    res.json({
+      count: result.rows.length,
+      posts: result.rows
+    });
+  } catch (error) {
+    console.error('Database Error:', error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 // Get posts by author id
 router.get('/authorblogs/:author_id', async (req, res) => {

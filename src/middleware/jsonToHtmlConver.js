@@ -1,19 +1,88 @@
 const { createHeadlessEditor } = require("@lexical/headless");
 const { $generateHtmlFromNodes } = require('@lexical/html');
 const { $getRoot } = require('lexical');
-const { HeadingNode, QuoteNode, ListItemNode, ListNode } = require('@lexical/rich-text');
+const { HeadingNode, QuoteNode } = require('@lexical/rich-text');
 const { LinkNode } = require('@lexical/link');
+const { ListNode, ListItemNode } = require('@lexical/list');
+const { CodeNode, CodeHighlightNode } = require('@lexical/code');
+const { HashtagNode } = require('@lexical/hashtag');
 const { JSDOM } = require('jsdom');
 const DOMPurify = require('dompurify');
 
+const exampleTheme = {
+  paragraph: 'editor-paragraph',
+  quote: 'editor-quote',
+  heading: {
+    h1: 'text-3xl font-bold',
+    h2: 'editor-heading-h2',
+    h3: 'editor-heading-h3',
+    h4: 'editor-heading-h4',
+    h5: 'editor-heading-h5',
+    h6: 'editor-heading-h6',
+  },
+  list: {
+    nested: {
+      listitem: 'editor-nested-listitem',
+    },
+    ol: 'editor-list-ol',
+    ul: 'editor-list-ul',
+    listitem: 'editor-listItem',
+    listitemChecked: 'editor-listItemChecked',
+    listitemUnchecked: 'editor-listItemUnchecked',
+  },
+  hashtag: 'editor-hashtag',
+  image: 'editor-image',
+  link: 'editor-link',
+  text: {
+    bold: 'editor-textBold',
+    code: 'editor-textCode',
+    italic: 'editor-textItalic',
+    strikethrough: 'editor-textStrikethrough',
+    subscript: 'editor-textSubscript',
+    superscript: 'editor-textSuperscript',
+    underline: 'editor-textUnderline',
+    underlineStrikethrough: 'editor-textUnderlineStrikethrough',
+  },
+  code: 'editor-code',
+  codeHighlight: {
+    atrule: 'editor-tokenAttr',
+    attr: 'editor-tokenAttr',
+    boolean: 'editor-tokenProperty',
+    builtin: 'editor-tokenSelector',
+    cdata: 'editor-tokenComment',
+    char: 'editor-tokenSelector',
+    class: 'editor-tokenFunction',
+    'class-name': 'editor-tokenFunction',
+    comment: 'editor-tokenComment',
+    constant: 'editor-tokenProperty',
+    deleted: 'editor-tokenProperty',
+    doctype: 'editor-tokenComment',
+    entity: 'editor-tokenOperator',
+    function: 'editor-tokenFunction',
+    important: 'editor-tokenVariable',
+    inserted: 'editor-tokenSelector',
+    keyword: 'editor-tokenAttr',
+    namespace: 'editor-tokenVariable',
+    number: 'editor-tokenProperty',
+    operator: 'editor-tokenOperator',
+    prolog: 'editor-tokenComment',
+    property: 'editor-tokenProperty',
+    punctuation: 'editor-tokenPunctuation',
+    regex: 'editor-tokenVariable',
+    selector: 'editor-tokenSelector',
+    string: 'editor-tokenSelector',
+    symbol: 'editor-tokenProperty',
+    tag: 'editor-tokenProperty',
+    url: 'editor-tokenOperator',
+    variable: 'editor-tokenVariable',
+  },
+};
+
 function convertLexicalToHtml(lexicalJson) {
-  // console.log("Conversion Middle get this data :- "+lexicalJson);
-  // 1. Initialize JSDOM
   const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
   const window = dom.window;
   const document = window.document;
 
-  // 2. Mock globals for Lexical's internal 'instanceof' checks
   global.window = window;
   global.document = document;
   global.Node = window.Node;
@@ -24,37 +93,40 @@ function convertLexicalToHtml(lexicalJson) {
 
   try {
     const editor = createHeadlessEditor({
-      nodes: [HeadingNode, QuoteNode, LinkNode],
+      nodes: [
+        HeadingNode, 
+        QuoteNode, 
+        LinkNode, 
+        ListNode, 
+        ListItemNode,
+        CodeNode,
+        CodeHighlightNode,
+        HashtagNode
+      ],
+      theme: exampleTheme,
       onError: (err) => { console.error(err); }
     });
 
-    // 3. Parse JSON (handle both string and object input)
     const editorState = typeof lexicalJson === 'string' 
       ? editor.parseEditorState(lexicalJson) 
       : editor.parseEditorState(JSON.stringify(lexicalJson));
 
     editor.setEditorState(editorState);
 
-    // 4. Generate HTML
     let html = '';
     editor.update(() => {
-      // Use the editor instance to generate HTML from the root
       html = $generateHtmlFromNodes(editor, null);
     });
 
-    // 5. Sanitize and Wrap
     const purify = DOMPurify(window);
-    // console.log("lexical to html in middleware :-")
     const cleanHtml = purify.sanitize(html);
 
-    // Wrap in <article> or <div> as requested
     return `<div class="lexical-content">${cleanHtml}</div>`;
 
   } catch (error) {
     console.error("Conversion failed:", error);
     return null;
   } finally {
-    // 6. Clean up globals to prevent memory leaks
     delete global.window;
     delete global.document;
   }
