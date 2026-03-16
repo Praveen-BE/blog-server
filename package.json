@@ -12,6 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1009.0",
+    "@aws-sdk/lib-storage": "^3.1009.0",
     "@lexical/code": "^0.40.0",
     "@lexical/hashtag": "^0.40.0",
     "@lexical/headless": "^0.40.0",
@@ -19,6 +21,7 @@
     "@lexical/link": "^0.40.0",
     "@lexical/list": "^0.40.0",
     "@lexical/rich-text": "^0.40.0",
+    "@smithy/node-http-handler": "^4.4.16",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.2",
     "cookie-parser": "^1.4.7",
@@ -29,6 +32,7 @@
     "jsdom": "^28.1.0",
     "jsonwebtoken": "^9.0.3",
     "lexical": "^0.40.0",
+    "multer": "^2.1.1",
     "pg": "^8.17.1",
     "validator": "^13.15.26"
   }
