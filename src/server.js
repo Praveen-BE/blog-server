@@ -43,6 +43,7 @@ const profileRouter = require("./routes/profileRoutes");
 const editorRouter = require("./routes/editorRoutes");
 const imageRouter = require("./routes/imageUploadRoute");
 const commentsRouter = require("./routes/commentsRouter");
+const reportsRouter = require("./routes/reportsRouter");
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -67,6 +68,7 @@ app.use("/api/profile", profileRouter);
 app.use("/api/editor", editorRouter);
 app.use("/api/images", imageRouter);
 app.use("/api/comments", commentsRouter);
+app.use("/api/reports", reportsRouter);
 
 // 404 handler - as last Router for Error Handling
 app.use((req, res) => {

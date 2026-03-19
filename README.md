@@ -238,4 +238,27 @@ CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id);
 CREATE INDEX IF NOT EXISTS idx_comments_user ON comments(user_id);
 CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id);
 
+-- ============================================
+-- Reports / Feedback table
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS reports (
+  id           SERIAL PRIMARY KEY,
+  reporter_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_type  VARCHAR(20) NOT NULL CHECK (target_type IN ('post', 'comment')),
+  target_id    INTEGER NOT NULL,
+  reason       VARCHAR(100) NOT NULL,
+  details      TEXT,
+  status       VARCHAR(20) NOT NULL DEFAULT 'pending'
+                 CHECK (status IN ('pending', 'reviewed', 'dismissed')),
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  -- Prevent duplicate reports from the same user on the same target
+  UNIQUE (reporter_id, target_type, target_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_reports_target    ON reports(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_reports_status    ON reports(status);
+CREATE INDEX IF NOT EXISTS idx_reports_reporter  ON reports(reporter_id);
+
 ```
