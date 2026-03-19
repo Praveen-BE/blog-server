@@ -7,6 +7,7 @@ First, run the development server:
 ```bash
 npm run dev
 ```
+
 ## SQL Database code
 
 i get this from claude ai.
@@ -43,7 +44,7 @@ CREATE TABLE IF NOT EXISTS posts (
   FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- to store lexical json format data 
+-- to store lexical json format data
 ALTER TABLE posts
 ADD COLUMN lexical_content JSONB;
 
@@ -193,22 +194,48 @@ Performance is not just about raw speed - it is about efficiency, scalability, a
   );
 
 -- Link posts to categories
-INSERT INTO post_categories (post_id, category_id) 
-SELECT p.id, c.id FROM posts p, categories c 
-WHERE p.title = 'Getting Started with Node.js and PostgreSQL' 
+INSERT INTO post_categories (post_id, category_id)
+SELECT p.id, c.id FROM posts p, categories c
+WHERE p.title = 'Getting Started with Node.js and PostgreSQL'
   AND c.slug IN ('nodejs', 'database', 'web-development')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO post_categories (post_id, category_id) 
-SELECT p.id, c.id FROM posts p, categories c 
-WHERE p.title = '10 React Hooks You Should Know in 2024' 
+INSERT INTO post_categories (post_id, category_id)
+SELECT p.id, c.id FROM posts p, categories c
+WHERE p.title = '10 React Hooks You Should Know in 2024'
   AND c.slug IN ('react', 'javascript', 'web-development')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO post_categories (post_id, category_id) 
-SELECT p.id, c.id FROM posts p, categories c 
-WHERE p.title = 'The Ultimate Guide to RESTful API Design' 
+INSERT INTO post_categories (post_id, category_id)
+SELECT p.id, c.id FROM posts p, categories c
+WHERE p.title = 'The Ultimate Guide to RESTful API Design'
   AND c.slug IN ('web-development', 'nodejs')
 ON CONFLICT DO NOTHING;
+
+-- Images table
+CREATE TABLE images (
+    id SERIAL PRIMARY KEY,
+    cloudflare_id TEXT NOT NULL UNIQUE,
+    post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL,
+    url TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Comments table
+CREATE TABLE IF NOT EXISTS comments (
+  id SERIAL PRIMARY KEY,
+  post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  parent_id INTEGER REFERENCES comments(id) ON DELETE CASCADE, -- for nested replies
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_user ON comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id);
 
 ```
