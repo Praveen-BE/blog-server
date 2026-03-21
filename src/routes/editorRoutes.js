@@ -1,6 +1,7 @@
 const express = require("express");
 const { userAuth } = require("../middleware/auth");
 const convertLexicalToHtml = require("../middleware/jsonToHtmlConver");
+const { lexicalToHtml } = require("../utlls/lexicalToHtml");
 const editorRouter = express.Router();
 
 editorRouter.post("/lexicalsave", userAuth, async (req, res) => {
@@ -179,7 +180,8 @@ editorRouter.post("/updateashtml", userAuth, async (req, res) => {
     }
 
     // Convert lexical json to clean html
-    const safeHtml = convertLexicalToHtml(lexicalJson);
+    // const safeHtml = convertLexicalToHtml(lexicalJson);
+    const safeHtml = lexicalToHtml(lexicalJson);
     // console.log("html of lexical :- "+safeHtml);
 
     // Update lexical_json if user is the author
