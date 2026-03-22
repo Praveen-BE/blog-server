@@ -261,4 +261,15 @@ CREATE INDEX IF NOT EXISTS idx_reports_target    ON reports(target_type, target_
 CREATE INDEX IF NOT EXISTS idx_reports_status    ON reports(status);
 CREATE INDEX IF NOT EXISTS idx_reports_reporter  ON reports(reporter_id);
 
+
+-- Add a role column with a default value of 'reader'
+ALTER TABLE users
+ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'reader'
+CHECK (role IN ('admin', 'creator', 'reader'));
+
+-- Update your existing seed users to have specific roles
+UPDATE users SET role = 'admin' WHERE email = 'john@example.com';
+UPDATE users SET role = 'creator' WHERE email = 'jane@example.com';
+-- Bob remains a 'reader' by default
+
 ```
